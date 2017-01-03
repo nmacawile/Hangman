@@ -17,7 +17,7 @@ module Hangman
 	case input
 		when 1
 			game = Game.new
-
+			game.play
 		when 2
 			#show list of saved game files
 			#user selects saved game
