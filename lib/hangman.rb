@@ -2,12 +2,10 @@ require './helper'
 require 'yaml'
 module Hangman
 	class Game
-
-		attr_accessor :dictionary, :bad_letters, :hints, :line_count
-
+		
 		private
 
-		attr_accessor :secret_word
+		attr_accessor :secret_word, :dictionary, :bad_letters, :hints, :line_count
 
 		public
 
@@ -17,7 +15,7 @@ module Hangman
 			@secret_word = select_word
 			@bad_letters = []
 			@hints = secret_word.gsub(/[A-Z]/, "_").split("")
-					p @secret_word
+			#p @secret_word
 		end
 
 		def select_word			
@@ -37,7 +35,7 @@ module Hangman
 			show_mechanics
 			show_hints
 			loop do				
-				player_turn
+				break if !player_turn
 				show_hints
 				break if game_over?
 			end
@@ -45,27 +43,34 @@ module Hangman
 
 		def show_mechanics
 			puts "Guess the secret word. Input only one letter at a time."
+			puts "Type 'save' if you want to save and exit your game anytime."
 		end
 
 		def show_hints	
 			puts		
 			puts hints.join(" ")
 			puts
-			print "wrong guesses: "
-			puts bad_letters.empty? ? "none" : bad_letters.join(", ")
-			puts
+
+			if !bad_letters.empty?
+				print "wrong guesses: "
+				puts bad_letters.join(", ")
+				puts
+			end
 		end
 
 		def player_turn
+			commands = ["SAVE", "EXIT", "QUIT"]
 			loop do
 				print "input: "
 				guess = gets.chomp.upcase
-				break if evaluate(guess)
-			end		
+				save_game if guess == "SAVE"
+				return false if commands.include?(guess)
+				break if commands.include?(guess) || evaluate(guess)
+			end
+			true
 		end
 
-		def evaluate(guess)
-			save_game if guess == "SAVE"
+		def evaluate(guess)			
 			#invalid
 			return false if guess.size > 1 || !guess.between?("A", "Z") ||
 				bad_letters.include?(guess) || hints.include?(guess)		
@@ -80,8 +85,9 @@ module Hangman
 		end
 
 		def save_game
-			Dir.mkdir("../save") if !Dir.exists?("../save")
-			File.open("../save/game.yml", "w") { |file| a= file.write(self.to_yaml) ; puts a}
+			save_folder = "../save"
+			Dir.mkdir(save_folder) if !Dir.exists?(save_folder)
+			File.open(save_folder + "/game.yml", "w") { |file| file.write(self.to_yaml) }
 		end
 
 		def game_over?
