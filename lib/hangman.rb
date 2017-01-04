@@ -1,7 +1,9 @@
+require './helper'
+require 'yaml'
 module Hangman
 	class Game
 
-		attr_accessor :dictionary, :bad_letters, :good_letters, :hints
+		attr_accessor :dictionary, :bad_letters, :hints, :line_count
 
 		private
 
@@ -11,15 +13,11 @@ module Hangman
 
 		def initialize
 			@dictionary = "../5desk.txt"
+			@line_count = File.foreach(dictionary).reduce(0){ |lines, _| lines + 1 }
 			@secret_word = select_word
 			@bad_letters = []
-			@good_letters = []
 			@hints = secret_word.gsub(/[A-Z]/, "_").split("")
 					p @secret_word
-		end
-
-		def line_count
-			@count ||= File.foreach(dictionary).reduce(0){ |line_count, _| line_count + 1 }
 		end
 
 		def select_word			
@@ -37,34 +35,64 @@ module Hangman
 
 		def play
 			show_mechanics
-			#loop until the word is guessed or the player reached bad guess limit
-			loop do
-				show_hints
+			show_hints
+			loop do				
 				player_turn
-				break if !hints.include?("_")
+				show_hints
+				break if game_over?
 			end
-			#check game conditions
-			#end loop
 		end
 
 		def show_mechanics
-			puts "Guess the secret word one letter at a time."
+			puts "Guess the secret word. Input only one letter at a time."
 		end
 
-		def show_hints
-			
+		def show_hints	
+			puts		
 			puts hints.join(" ")
-			puts bad_letters.join(", ")
+			puts
+			print "wrong guesses: "
+			puts bad_letters.empty? ? "none" : bad_letters.join(", ")
+			puts
 		end
 
 		def player_turn
-			print "guess: "
-			puts hints.join(" ")
-			guess = gets.chomp.upcase
-			matched_indices = secret_word.split("").each_index.select { |i| secret_word[i] == guess }
-			hints.each_index { |i| hints[i] = guess if matched_indices.include?(i) }
-			p matched_indices
-			puts hints.join(" ")
-		end		
+			loop do
+				print "input: "
+				guess = gets.chomp.upcase
+				break if evaluate(guess)
+			end		
+		end
+
+		def evaluate(guess)
+			save_game if guess == "SAVE"
+			#invalid
+			return false if guess.size > 1 || !guess.between?("A", "Z") ||
+				bad_letters.include?(guess) || hints.include?(guess)		
+			
+			#matched
+			matched_indices = secret_word.select_indices { |i| secret_word[i] == guess }
+			hints.map!.with_index { |item, i| matched_indices.include?(i) ? guess : item }
+
+			#no match			
+			bad_letters << guess if matched_indices.empty?
+			true
+		end
+
+		def save_game
+			Dir.mkdir("../save") if !Dir.exists?("../save")
+			File.open("../save/game.yml", "w") { |file| a= file.write(self.to_yaml) ; puts a}
+		end
+
+		def game_over?
+			if !hints.include?("_")
+				puts "Congratulations! You guessed the secret word!"
+				return true
+			elsif bad_letters.size > 5
+				puts "Sorry, you are out of turns. The secret word is '#{secret_word}'"
+				return true
+			end
+			false
+		end
 	end
 end
