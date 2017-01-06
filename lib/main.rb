@@ -10,32 +10,40 @@ def show_menu
 	print "input: "		
 end
 
-def quit?
-	print "Do you want to play again? (Y to confirm) : "
-	gets.chomp.upcase == "Y" ? false : true
+def main_menu?
+	print "\nType 'Y' to go back to the main menu. : "
+	gets.chomp.upcase == "Y" ? true : false
+end
+
+def play_again?
+	print "\nDo you want to play again? (Y to play again): "
+	gets.chomp.upcase == "Y" ? true : false
 end
 
 loop do
 	show_menu
 	input =	gets.chomp.to_i
 
-	game = nil
 	case input
 	when 1
-		game = Hangman::Game.new
+		Hangman::Game.new.play
 	when 2
 		save_file = "../save/game.yml"
 		if File.exists?(save_file)
-			game = YAML::load_file(save_file)
+			YAML::load_file(save_file).play			
 			File.delete(save_file)
 		else
 			puts "No saved game found. Creating a new game instead."
-			game = Hangman::Game.new
+			puts
+			Hangman::Game.new.play
 		end
+	else
+		break
 	end
 
-	game.play if !game.nil?
+		Hangman::Game.new.play
+	end
 
-	break if game.nil? || quit?
+	break if !main_menu?
 
 end

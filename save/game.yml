@@ -1,12 +1,16 @@
 --- !ruby/object:Hangman::Game
 dictionary: "../5desk.txt"
 line_count: 61406
-secret_word: TIEPIN
-bad_letters: []
-hints:
-- _
-- I
+secret_word: SOMATIC
+bad_letters:
 - E
+- R
+- B
+hints:
+- S
 - _
-- I
-- N
+- _
+- A
+- T
+- _
+- _
