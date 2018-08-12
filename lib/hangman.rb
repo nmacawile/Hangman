@@ -42,8 +42,10 @@ module Hangman
 		end
 
 		def show_mechanics
-			puts "Guess the secret word. Input only one letter at a time."
-			puts "Type 'save' if you want to save and exit your game anytime."
+			puts "Guess the secret word. Input only one letter at a time for your guesses to count."
+			puts "Otherwise, type 'SAVE' if you want to save and exit your game anytime."
+			puts "Alternatively, type 'QUIT' or 'EXIT' if you just want to exit your game."
+			puts "Good luck!"
 		end
 
 		def show_hints	
@@ -61,6 +63,7 @@ module Hangman
 		def player_turn
 			commands = ["SAVE", "EXIT", "QUIT"]
 			loop do
+				puts "#{6 - bad_letters.size} lives remaining."
 				print "input: "
 				guess = gets.chomp.upcase
 				save_game if guess == "SAVE"
